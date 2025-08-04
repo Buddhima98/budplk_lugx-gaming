@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-service
+  namespace: lugx-gaming
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: analytics-service
+  template:
+    metadata:
+      labels:
+        app: analytics-service
+    spec:
+      containers:
+        - name: analytics-service
+          image: buddhimaparakramage/analytics-service:v1
+          imagePullPolicy: IfNotPresent
+          env:
+            # Database configuration (from ConfigMap and Secret)
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: lugx-gaming-config
+                  key: DB_HOST
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: lugx-gaming-config
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: lugx-gaming-secrets
+                  key: DB_USER
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: lugx-gaming-secrets
+                  key: DB_PASS
+
+            # ClickHouse configuration
+            - name: CLICKHOUSE_HOST
+              value: clickhouse
+              name: CLICKHOUSE_PORT
+              value: "8123"
+          ports:
+            - containerPort: 3002
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service
+  namespace: lugx-gaming
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 3002
+      targetPort: 3002
+  selector:
+    app: analytics-service

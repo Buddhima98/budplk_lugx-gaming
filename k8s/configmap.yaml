@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lugx-gaming-config
+  namespace: lugx-gaming
+data:
+  DB_HOST: "postgres"
+  DB_NAME: "lugx"
+  API_GAME_URL: "/games"
+  API_ORDER_URL: "/orders"
+  API_ANALYTICS_URL: "/track"
+

@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: lugx
+    volumes:
+      - ./db-init.sql:/docker-entrypoint-initdb.d/db-init.sql
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.3
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+
+  game-service:
+    build: ./game-service
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASS: password
+      DB_NAME: lugx
+    depends_on:
+      - postgres
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "3001:3001"
+    environment:
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASS: password
+      DB_NAME: lugx
+    depends_on:
+      - postgres
+
+  analytics-service:
+    build: ./analytics-service
+    ports:
+      - "3002:3002"
+    depends_on:
+      - clickhouse
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - game-service
+      - order-service
+      - analytics-service
